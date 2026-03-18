@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Order Tracker</title>
+
+<style>
+body {
+  margin: 0;
+  font-family: "Segoe UI", sans-serif;
+  background: linear-gradient(135deg, #d7c8ff, #f3edff);
+}
+
+/* กล่องหลัก */
+.container {
+  max-width: 900px;
+  margin: 40px auto;
+  padding: 20px;
+}
+
+/* header */
+.header {
+  background: rgba(255,255,255,0.4);
+  backdrop-filter: blur(10px);
+  padding: 25px;
+  border-radius: 20px;
+  text-align: center;
+}
+
+.header h1 {
+  margin: 0;
+  color: #5a4fcf;
+}
+
+/* search */
+.search {
+  margin-top: 15px;
+}
+
+input {
+  padding: 12px;
+  width: 60%;
+  border-radius: 10px;
+  border: none;
+}
+
+button {
+  padding: 12px 20px;
+  border-radius: 10px;
+  border: none;
+  background: #7b6cff;
+  color: white;
+  cursor: pointer;
+}
+
+/* card */
+.order {
+  background: white;
+  margin-top: 20px;
+  padding: 20px;
+  border-radius: 15px;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+
+.order h3 {
+  display: flex;
+  justify-content: space-between;
+}
+
+/* status */
+.status {
+  padding: 4px 10px;
+  border-radius: 10px;
+  color: white;
+  font-size: 13px;
+}
+
+.green { background: #4CAF50; }
+.yellow { background: #FFC107; color:black; }
+.red { background: #F44336; }
+
+/* grid */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.item {
+  background: #f5f3ff;
+  padding: 10px;
+  border-radius: 10px;
+}
+
+/* mobile */
+@media (max-width:600px){
+  input { width: 100%; margin-bottom:10px;}
+  .grid { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+  <div class="header">
+    <h1>📦 Order Status</h1>
+
+    <div class="search">
+      <input id="search" placeholder="พิมพ์ account">
+      <button onclick="searchData()">ค้นหา</button>
+    </div>
+  </div>
+
+  <div id="result"></div>
+</div>
+
+<script>
+const API_URL = "ใส่_API_URL_ตรงนี้";
+
+async function fetchData(){
+  const res = await fetch(API_URL);
+  return await res.json();
+}
+
+async function searchData(){
+  const keyword = document.getElementById("search").value.toLowerCase();
+  const data = await fetchData();
+
+  const result = data.filter(item =>
+    item.account && item.account.toLowerCase().includes(keyword)
+  );
+
+  let html = "";
+
+  if(result.length === 0){
+    html = "<p>❌ ไม่พบข้อมูล</p>";
+  } else {
+
+    result.forEach(item => {
+
+      let statusClass = "green";
+      if(item.status?.includes("รอ")) statusClass = "yellow";
+      if(item.status?.includes("ยัง")) statusClass = "red";
+
+      html += `
+        <div class="order">
+          <h3>
+            ${item.list || "-"}
+            <span class="status ${statusClass}">
+              ${item.status || "-"}
+            </span>
+          </h3>
+
+          <div class="grid">
+            <div class="item">👤 ${item.member || "-"}</div>
+            <div class="item">💰 ${item.payment || "-"}</div>
+            <div class="item">💸 Balance: ${item.balance || "-"}</div>
+            <div class="item">📝 ${item.remark || "-"}</div>
+          </div>
+        </div>
+      `;
+    });
+
+  }
+
+  document.getElementById("result").innerHTML = html;
+}
+</script>
+
+</body>
+</html>
